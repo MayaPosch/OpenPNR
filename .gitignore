@@ -1,0 +1,6 @@
+obj/
+lib/
+bin/
+*.bba
+ecp5/chipdbs/*.cc
+*.exe

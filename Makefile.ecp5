@@ -1,0 +1,8 @@
+# ECP5-specific details.
+
+ARCH_INCLUDE := -I ecp5/ -I ecp5/resource
+ARCH_FLAGS :=  
+#-D_MSC_VER=1
+ARCH_SOURCES := $(wildcard ecp5/*.cc) $(wildcard ecp5/chipdbs/*.cc)
+#$(wildcard ecp5/resource/*.cc)
+ARCH_OBJECTS := $(addprefix obj/,$(notdir) $(ARCH_SOURCES:.cc=.o))
