@@ -12,7 +12,7 @@ export TOP := $(CURDIR)
 GPP = g++
 GCC = gcc
 MAKEDIR = mkdir -p
-RM = rm
+RM = rm -f
 AR = ar
 MAKE = make
 
@@ -25,6 +25,7 @@ FLAGS += -DNO_PYTHON=1 -DNO_GUI=1 -DMAIN_EXECUTABLE=1 $(ARCH_FLAGS)
 CPPFLAGS := $(FLAGS) -g3 -std=c++14 $(INCLUDE)
 ifdef OS
 	LIBS += -lboost_filesystem-mt -lboost_program_options-mt -lboost_system-mt
+	EXT = .exe
 else
 	LIBS += -lboost_filesystems -lboost_program_options -lboost_system
 endif
@@ -64,6 +65,7 @@ obj/%.o: %.cpp
 	$(GPP) -c -o $@ $< $(CPPFLAGS)
 	
 $(BIN_OUTPUT):
+	$(RM) bin/$@-$(ARCH)$(EXT)
 	$(GPP) -o bin/$@-$(ARCH) $(CPPFLAGS) $(CPP_OBJECTS) $(ARCH_OBJECTS) $(LIBS)
 	
 makedir:

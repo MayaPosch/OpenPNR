@@ -49,7 +49,9 @@ std::map<std::string, std::string> timing_port_xform {
 	{"RAD3", "A0"}
 };
 
-std::map<std::string,  int> pip_class_to_idx {{"default", 0}};
+std::map<std::string,  int> pip_class_to_idx {{"default", 0}, 
+												{"zero", 1}
+											};
 std::vector<std::string> speed_grade_names {"6", "7", "8", "8_5G"};
 
 
@@ -103,6 +105,7 @@ struct PinData {
 	int bel_index;
 	int bank;
 	std::string function;
+	int dqs;
 };
 
 
@@ -339,6 +342,17 @@ void process_timing_data() {
 			chip.pip_class_delays.push_back(pipclass);
 		}
 		
+		/* PipClass pc;
+		pc.min_delay = 0;
+		pc.max_delay = 0;
+		pc.min_fanout = 0;
+		pc.max_fanout = 0;
+		chip.pip_class_delays.push_back(pc); */
+		if (chip.pip_class_delays.size() > 1) {
+			chip.pip_class_delays[pip_class_to_idx["zero"]].min_delay = 0;
+			chip.pip_class_delays[pip_class_to_idx["zero"]].max_delay = 0;
+		}
+		
 		std::cout << "Loading interconnect file..." << std::endl;
 		
 		// Load the JSON file containing the cell data from the Trellis ECP5 folder.
@@ -416,6 +430,11 @@ int get_bel_index(std::shared_ptr<Trellis::DDChipDb::DedupChipdb> ddrg, Trellis:
 }
 
 
+static inline bool is_digit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+
 void process_pio_db(std::shared_ptr<Trellis::DDChipDb::DedupChipdb> ddrg, std::string device) {
 	//
 	// Load the JSON file containing the IO data from the Trellis ECP5 folder.
@@ -474,14 +493,30 @@ void process_pio_db(std::shared_ptr<Trellis::DDChipDb::DedupChipdb> ddrg, std::s
 			pinfunc = objPtr->getValue<std::string>("function");
 		}
 		
+		int dqs = -1;
+		if (objPtr->has("dqs")) {
+			std::string tdqs = objPtr->getValue<std::string>("dqs");
+			if (tdqs.compare(0, 1, "L") == 0) { dqs = 0; }
+			else if (tdqs.compare(0, 1, "R") == 0) { dqs = 2048; }
+			
+			std::size_t number_offset = 0;
+			std::string::const_iterator it;
+			for (it = tdqs.begin(); it != tdqs.end(); ++it) {
+				if (!is_digit(*it)) { number_offset++; }
+				else { break; }
+			}
+			
+			dqs |= std::stoi(tdqs.substr(number_offset), nullptr, 10);
+		}
+		
 		int bel_idx = get_bel_index(ddrg, loc, pio);
 		if (bel_idx != -1) {
-			//
 			PinData pd;
 			pd.location = loc;
 			pd.bel_index = bel_idx;
 			pd.bank = bank;
 			pd.function = pinfunc;
+			pd.dqs = dqs;
 			pindata.push_back(std::move(pd));
 		}
 	}
@@ -609,11 +644,6 @@ std::vector<StringRef> split(std::string const& str, char delimiter = ' ', int l
     }
 	
     return result;
-}
-
-
-static inline bool is_digit(char c) {
-    return c >= '0' && c <= '9';
 }
 
 
@@ -821,6 +851,20 @@ std::string get_pip_class_name(std::string &source, std::string &sink) {
 int get_pip_class(std::string &wire_from, std::string &wire_to) {
 	// Debug
 	//std::cout << "Request for PIP class. Wire from: " << wire_from << ", to: " << wire_to << std::endl;
+	
+	if (wire_from.find("FCO") != std::string::npos || 
+		wire_to.find("FCI") != std::string::npos) {
+		//
+		return pip_class_to_idx["zero"];
+	}
+	
+	if (wire_from.find("F5") != std::string::npos || 
+		wire_from.find("FX") != std::string::npos || 
+		wire_to.find("FXA") != std::string::npos || 
+		wire_to.find("FXB") != std::string::npos) {
+		//
+		return pip_class_to_idx["zero"];
+	}
 	
     std::string class_name = get_pip_class_name(wire_from, wire_to);
 	
@@ -1103,7 +1147,7 @@ void write_database(std::string device_name, Trellis::Chip chip,
         bba.u32(pin.bel_index, "bel_index");
         bba.s(pin.function, "function_name"); // Skip if empty?
         bba.u16(pin.bank, "bank");
-        bba.u16(0, "padding");
+        bba.u16(pin.dqs, "dqsgroup");
 	}
 
     bba.l("tiletype_names", "RelPtr<char>");
