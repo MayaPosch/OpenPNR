@@ -7,12 +7,12 @@ export TOP := $(CURDIR)
 GPP = g++
 GCC = gcc
 MAKEDIR = mkdir -p
-RM = rm
+RM = rm -f
 AR = ar
 
 LIB_OUTPUT = libtrellis.a
 #PYMOD_OUTPUT = pytrellis
-BIN_OUTPUT = ecppack ecppll ecpunpack
+BIN_OUTPUT = ecppack ecppll ecpunpack ecpmulti
 INCLUDE = -I include/ 
 FLAGS += -DTRELLIS_PREFIX=\"/usr\"
 CPPFLAGS := $(FLAGS) -g3 -std=c++14 $(INCLUDE)
@@ -25,6 +25,7 @@ BIN_OBJECTS := $(addprefix bin/,$(notdir) $(BIN_OUTPUT))
 
 ifdef OS
 	LIBS := $(LIBS) -lboost_filesystem-mt -lboost_thread-mt -lboost_program_options-mt -lboost_system-mt
+	EXT = .exe
 else
 	LIBS := $(LIBS) -lboost_filesystem -lboost_thread -lboost_program_options -lboost_system
 endif
@@ -46,6 +47,7 @@ lib/$(LIB_OUTPUT): $(CPP_OBJECTS)
 	# $(AR) rcs $@ $^
 	
 $(BIN_OUTPUT):
+	$(RM) bin/$@$(EXT)
 	$(GPP) -o bin/$@ tools/$@.cpp $(CPPFLAGS) $(LIBS)
 	
 makedir:

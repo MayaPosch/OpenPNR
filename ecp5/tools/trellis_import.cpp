@@ -370,7 +370,7 @@ void process_timing_data() {
 			if (grade == "6") {
 				PipClass pc;
 				pip_class_to_idx[pipclass] = chip.pip_class_delays.size();
-				std::cout << "Adding pipclass_to_idx '" << pipclass << "' with size: " << chip.pip_class_delays.size() << std::endl;
+				//std::cout << "Adding pipclass_to_idx '" << pipclass << "' with size: " << chip.pip_class_delays.size() << std::endl;
 				pc.min_delay = min_delay;
 				pc.max_delay = max_delay;
 				pc.min_fanout = min_fanout;

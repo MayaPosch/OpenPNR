@@ -4,7 +4,7 @@
 
 GCC = g++
 MAKEDIR = mkdir -p
-RM = rm
+RM = rm -f
 
 OUTPUT = trellis_import
 INCLUDE = -I . -I ../../trellis/libtrellis/include
@@ -16,6 +16,7 @@ CFLAGS := $(INCLUDE) -g3 -std=c++17 -O0
 ifdef OS
 	CFLAGS := $(CFLAGS) -U__STRICT_ANSI__
 	LIBS := $(LIBS) -lboost_system-mt -lPocoFoundation -lPocoJSON
+	EXT = .exe
 else
 	LIBS := $(LIBS) -lboost_system -lboost_thread -lPocoFoundation -lPocoJSON
 endif
@@ -32,6 +33,7 @@ obj/%.o: %.cpp
 	$(GCC) -c -o $@ $< $(CFLAGS)
 	
 $(OUTPUT):
+	$(RM) $@$(EXT)
 	$(GCC) -o $@ $(OBJECTS) $(LIBS)
 
 clean:

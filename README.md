@@ -43,6 +43,10 @@ Individual build options are:
 * **db_convert**
 	* convert the BBA files to the files that will be compiled into the PNR binary.
 * **pnr_build**
+	* build the PNR binary.
+
+
+Keep in mind that building the project requires significant amounts of RAM. The 85k ECP5 device database requires about 4 GB of free RAM.
 
 
 ## Usage ##
