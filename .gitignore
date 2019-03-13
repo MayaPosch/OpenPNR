@@ -3,4 +3,6 @@ lib/
 bin/
 *.bba
 ecp5/chipdbs/*.cc
+ecp5/chipdbs/old/*
+ecp5/chipdbs/new/*
 *.exe
